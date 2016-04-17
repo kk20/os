@@ -1,0 +1,25 @@
+import java.util.*;
+class differentclass
+{
+	public int addplusone(int x, int y)
+	{
+	int z= x+y+1;
+	return z;
+	}
+}
+class withoutinline
+{
+	public static void main(String args[])
+	{
+	int a,b;
+	long starttime,endtime,extime;
+	starttime=System.nanoTime();
+	differentclass obj=new differentclass();
+	a=obj.addplusone(5,4);
+	b=obj.addplusone(7,8);
+	System.out.println("A="+a+"B="+b);
+	endtime=System.nanoTime();
+	extime= (endtime-starttime);
+	System.out.println("execution time="+extime);
+	}
+}
