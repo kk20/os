@@ -1,0 +1,56 @@
+import java.util.*;
+public class withPeepholeOpt
+{
+	public static void main(String s[])
+	{
+		long start,end;
+		start=System.currentTimeMillis();
+		
+		//Constant folding
+		int a = 6;
+		int b = 11;
+		int c = 4;
+		
+		System.out.println("----Constant folding----");
+		System.out.println(" Value of a: "+a);
+		System.out.println(" Value of b: "+b);
+		System.out.println(" Value of c: "+c);
+		
+		//Strength reduction
+		int a1 = a+a;
+		int b1 = b+b+b;
+		double c1 = c>>1;
+		
+		System.out.println("----Strength reduction----");
+		System.out.println(" Value of a1: "+a1);
+		System.out.println(" Value of b1: "+b1);
+		System.out.println(" Value of c1: "+c1);
+		
+		//Null sequences removed
+		
+		//Combine operations
+		int a3 = a+a;
+		
+		System.out.println("----Combine operations----");
+		System.out.println(" Value of a3: "+a);
+		
+		//Algebraic laws
+		int a5 = a;
+		
+		System.out.println("----Algebraic laws----");
+		System.out.println(" Value of a5: "+a5);
+		
+		//Common sub-expression elimination
+		int temp = b * c;
+		int a6 = temp + 5;
+		int a7 = 10 + temp;
+		
+		System.out.println("----Common sub-expression elimination----");
+		System.out.println(" Value of a6: "+a6);
+		System.out.println(" Value of a7: "+a7);
+		
+		end=System.currentTimeMillis();
+		long time = end - start;
+		System.out.println("Execution time: "+time);
+	}
+}
