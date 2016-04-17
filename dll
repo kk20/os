@@ -1,0 +1,211 @@
+/* Note - not my code but I've tested it. Don't have time for adding comments. 
+/*DO NOT change formatting of following i/p file. You can change the content but don't indent or stuff. 
+
+progone.txt
+
+pg1 start
+entry a,b
+extrn pg2,c
+a dc f 4
+b ds 6 d
+a(a)
+a(b+15)
+a(c-pg2)
+end
+
+progtwo.txt
+
+pg2 start
+entry c
+extrn a,b
+c dc f 7
+a(a)
+a(b+15)
+end
+
+*/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+int lno,n;
+
+typedef struct{
+    char sym[100],type[100];
+    int id,ra,length;
+}esd;
+
+typedef struct{
+    char sym[100];
+    int addr;
+}gest;
+
+void esdcard(esd x[], int file){
+    int i,j,k,len;
+    char str[100],temp[100];
+    FILE *fp;
+    n=0;
+    if(file==1)
+        fp=fopen("progone.txt","r");
+    else fp=fopen("progtwo.txt","r");
+    loop:while(fgets(str,100,fp)){
+        i=0;j=0;
+        memset(temp,'\0',100);
+        len=strlen(str)-1;
+        while(str[i]!=' ' && i<len)
+            temp[j++]=str[i++];
+        i++;
+        if(lno==0){
+            strcpy(x[n].sym,temp);
+            strcpy(x[n].type,"sd");
+            x[n].ra=0;
+            n++;lno++;
+            memset(temp,'\0',100);
+            memset(str,'\0',100);
+            goto loop;
+        }
+        if(lno!=0){
+            if(strcmp(temp,"entry")==0){
+                j=0;
+                memset(temp,'\0',100);
+                ld:while(str[i]!=',' && i<len)
+                    temp[j++]=str[i++];
+                strcpy(x[n].sym,temp);
+                strcpy(x[n].type,"ld");
+                n++;
+                if(str[i]==',' && i<len){
+                    i++;
+                    memset(temp,'\0',100);
+                    j=0;
+                    goto ld;
+                }
+                lno++;
+                goto loop;
+            }
+            if(strcmp(temp,"extrn")==0){
+                j=0;
+                memset(temp,'\0',100);
+                er:while(str[i]!=',' && i<len)
+                    temp[j++]=str[i++];
+                strcpy(x[n].sym,temp);
+                strcpy(x[n].type,"er");
+                n++;
+                if(str[i]==',' && i<len){
+                    i++;
+                    memset(temp,'\0',100);
+                    j=0;
+                    goto er;
+                }
+                lno++;
+                goto loop;
+            }
+            for(k=0;k<n;k++)
+            if(strcmp(x[k].sym,temp)==0){
+                x[k].ra=lno;
+				memset(temp,'\0',100);
+					j=0;
+				while(str[i]!=' ' && i<len)
+					temp[j++]=str[i++];
+				if(strcmp(temp,"dc")==0){
+					if(str[i+1]=='b'){
+						x[k].length=1;
+						x[k].ra=lno;
+						lno++;
+						goto loop;
+					}
+					else if(str[i+1]=='h'){
+						x[k].length=2;
+						x[k].ra=lno;
+						lno++;
+						goto loop;
+					     }
+					     else if(str[i+1]=='f'){
+							x[k].length=4;
+							x[k].ra=lno;
+							lno++;
+							goto loop;
+						  }
+						  else if(str[i+1]=='d'){
+								x[k].length=8;
+								x[k].ra=lno;
+								lno++;
+								goto loop;
+						       }
+				}
+				if(strcmp(temp,"ds")==0){
+					if(str[i+3]=='b'){
+						x[k].length=1;
+						x[k].ra=lno;
+						lno++;
+						goto loop;
+					}
+					else if(str[i+3]=='h'){
+						x[k].length=2;
+						x[k].ra=lno;
+						lno++;
+						goto loop;
+					     }
+					     else if(str[i+3]=='f'){
+							x[k].length=4;
+							x[k].ra=lno;
+							lno++;
+							goto loop;
+						  }
+						  else if(str[i+3]=='d'){
+								x[k].length=8;
+								x[k].ra=lno;
+								lno++;
+								goto loop;
+						       }
+				}
+            }
+            lno++;
+
+        }
+    }
+    x[0].length=lno;
+    i=1;
+    for(k=0;k<n;k++)
+        if(strcmp(x[k].type,"ld")==0)
+            continue;
+        else x[k].id=i++;
+    fclose(fp);
+}
+
+void main(){
+    int i,addr,nbk,m;
+    esd a[100],b[100];
+    gest g[100];
+    printf("Enter the Initial Program Load Address: ");
+    scanf("%d",&addr);
+    lno=0;nbk=0;
+    esdcard(a,1);
+    for(i=0;i<n;i++)
+        if(strcmp(a[i].type,"sd")==0 || strcmp(a[i].type,"ld")==0){
+            strcpy(g[nbk].sym,a[i].sym);
+            g[nbk++].addr=a[i].ra+addr;
+        }
+    m=n;
+    addr=addr+lno;
+    lno=0;
+
+    esdcard(b,2);
+    for(i=0;i<n;i++)
+        if(strcmp(b[i].type,"sd")==0 || strcmp(b[i].type,"ld")==0){
+            strcpy(g[nbk].sym,b[i].sym);
+            g[nbk++].addr=b[i].ra+addr;
+        }
+
+
+    //printing the ESD cards for both the programs and the GEST
+    printf("\nPROGRAM 1 ESD CARD:\n\n");
+    printf("| SYMBOL | TYPE | ID | RA | Length |\n");
+    for(i=0;i<m;i++)
+        printf("| %6s | %4s | %2d | %2d | %5d |\n",a[i].sym,a[i].type,a[i].id,a[i].ra,a[i].length);
+    printf("\n\nPROGRAM 2 ESD CARD:\n\n");
+    printf("| SYMBOL | TYPE | ID | RA | Length |\n");
+    for(i=0;i<n;i++)
+        printf("| %6s | %4s | %2d | %2d | %5d |\n",b[i].sym,b[i].type,b[i].id,b[i].ra,b[i].length);
+   
+}
