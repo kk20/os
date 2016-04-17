@@ -1,0 +1,251 @@
+//This code works for both absolute and relative programs
+//Following 2 assumptions are made regarding instruction formats
+//1.	That RX instructions follow the order i.e. first operand is always an R, second is an X
+//2.	That RR instructions always specify registers using integers and never variables
+//When testing your own program, add your instructions in the mot array, update MAX_MOTs and chage filename in fopen.
+
+#include "stdio.h"
+#include "string.h"
+#include "math.h"
+
+char mot[10][10] = {"L","A","ST"};	//machine opcodes 
+char pot[10][10] = {"USING","DC","DS","EQU","DROP","END"};	//pseudo-op
+int MAX_MOT = 3;
+int MAX_POT = 6;
+
+struct literal
+{
+	char name[20];
+	int addr;
+} lit[20];		//assume 20 max literals
+
+struct symbol
+{
+	char name[20];
+	int addr;
+} sym[20];		//assume 20 max symbols
+
+int main(){
+	int lc = 0, k = 0, symbols = 0, literals = 0, dontenter = 0, isabsolute = 0, ascii[20], i,j;
+	char wc[10];		//stores the current word
+	char prev[10];		//store the word preceeding wc
+	FILE *fip,*fsym,*flit;
+	fip = fopen("input3.asm","r");
+	fsym = fopen("symbol.txt","w");
+	flit = fopen("literal.txt","w");
+
+	fscanf(fip,"%s",wc);
+	while(!feof(fip)){
+
+		if( dontenter == 0){	
+			if( fabs(strcmp(wc,"START")) ){	
+				//The first word is not START
+				strcpy(sym[symbols].name,wc);		//Put the label in sym struct
+				sym[symbols++].addr = lc;
+				fscanf(fip,"%s",wc);		//wc now holds start
+				dontenter = 1;
+				fscanf(fip,"%s",wc);
+				//If START is followed by an integer, consider the ALP as absolute
+				//Initialize LC to that address
+				for(i=0; i<strlen(wc); i++)
+					if(!isdigit(wc[i])){
+						isabsolute = 0;
+						break;
+					}
+				if(i == strlen(wc)){
+					isabsolute = 1;
+					for(k=0,j=0; k<strlen(wc); k++){
+						j = j*10 + (int)wc[k] - '0';
+					}
+					printf("Load Address = %d\n",j);
+					lc = lc + j;
+				}
+			}
+		}
+
+		if(isabsolute == 1)
+			fscanf(fip,"%s",wc);		//wc now holds the next word for processing
+		isabsolute = 1;
+
+		//Search for word in POT
+		BEWARE:for(i=0; i<MAX_POT; i++){
+			if(!strcmp(wc,pot[i])){
+				if( !strcmp(wc,"USING") || !strcmp(wc,"DROP")){
+					//Do nothing
+					break;
+				}
+				if( !strcmp(wc,"END")){
+					//Go to pass 2 i.e. end the execution
+					break;
+				}
+				if( !strcmp(wc,"DC") || !strcmp(wc,"DS")){
+					//Symbol Processing
+					if(!strcmp(wc,"DC")){
+						fscanf(fip,"%s",prev);
+						fscanf(fip,"%s",wc);
+						sym[j].addr = lc;
+						//Update the LC
+						if(!strcmp(prev,"B"))
+							lc = lc + 1;
+						if(!strcmp(prev,"H"))
+							lc = lc + 2;
+						if(!strcmp(prev,"F"))
+							lc = lc + 4;
+						if(!strcmp(prev,"D"))
+							lc = lc + 8;
+					}
+					if(!strcmp(wc,"DS")){
+						fscanf(fip,"%s",prev);
+						fscanf(fip,"%s",wc);
+						sym[j].addr = lc;
+						if(!strcmp(prev,"B"))
+							lc = lc + 1;
+						if(!strcmp(prev,"H"))
+							lc = lc + 2;
+						if(!strcmp(prev,"F"))
+							lc = lc + 4;
+						if(!strcmp(prev,"D"))
+							lc = lc + 8;
+						if(!strcmp(wc,"B")||!strcmp(wc,"F")||!strcmp(wc,"H")||!strcmp(wc,"D") ){
+							if(!strcmp(prev,"1"))
+								k = 1;
+							if(!strcmp(prev,"2"))
+								k = 2;
+							if(!strcmp(prev,"3"))
+								k = 3;
+							if(!strcmp(prev,"4"))
+								k = 4;
+							if(!strcmp(prev,"5"))
+								k = 5;
+							if(!strcmp(prev,"6"))
+								k = 6;
+							if(!strcmp(prev,"7"))
+								k = 7;
+							if(!strcmp(prev,"8"))
+								k = 8;
+							if(!strcmp(prev,"9"))
+								k = 9;
+							if(!strcmp(wc,"B"))
+								lc = lc + k * 1;
+							if(!strcmp(wc,"H"))
+								lc = lc + k * 2;
+							if(!strcmp(wc,"F"))
+								lc = lc + k * 4;
+							if(!strcmp(wc,"D"))
+								lc = lc + k * 8;
+						}
+					}
+					break;
+				}
+				if( !strcmp(wc,"EQU")){
+					fscanf(fip,"%s",wc);
+					sym[j].addr = lc;
+					break;
+				}
+			}
+		}
+		if(i!=MAX_POT)
+			continue;
+
+		//If not found in POT, search for word in MOT
+		for(i=0; i<MAX_MOT; i++){
+			if(!strcmp(wc,mot[i])){
+				//Word found in MOT
+				//Determine type of instruction RR or RX and update the LC
+				fscanf(fip,"%s",prev);
+				fscanf(fip,"%s",wc);
+				if( ( !strcmp(prev,"1")|| !strcmp(prev,"2")|| !strcmp(prev,"3")|| !strcmp(prev,"4")|| !strcmp(prev,"5")|| !strcmp(prev,"6")||
+					!strcmp(prev,"7")|| !strcmp(prev,"8")|| !strcmp(prev,"9")|| !strcmp(prev,"10")|| !strcmp(prev,"11")|| !strcmp(prev,"12")||
+					!strcmp(prev,"13")|| !strcmp(prev,"14")|| !strcmp(prev,"15") ) && ( !strcmp(wc,"1")|| !strcmp(wc,"2")|| !strcmp(wc,"3")|| 
+					!strcmp(wc,"4")|| !strcmp(wc,"5")|| !strcmp(wc,"6")|| !strcmp(wc,"7")|| !strcmp(wc,"8")|| !strcmp(wc,"9")|| !strcmp(wc,"10")||
+					!strcmp(wc,"11")|| !strcmp(wc,"12")|| !strcmp(wc,"13")|| !strcmp(wc,"14")|| !strcmp(wc,"15") ) ) {
+					//Format is RR
+					//Here, in RR format, its assumed registers are always specified with nos. and never with variables.
+					lc = lc + 2;
+				}
+				else{
+					//Assume RX order always follows
+					//Hence, wc can be a literal or a symbol or an address
+					if(wc[0] == '='){
+						//wc is a literal
+						strcpy(lit[literals].name,wc);
+						lit[literals++].addr = lc;
+					}
+					//Address is specified as offset(index,base)
+					else if( wc[strlen(wc)-1] == ')' ){
+						//last char is ) hence an address
+						//Do nothing
+					}
+					else{
+						//wc is a symbol
+						//check if it is already present in sym struct
+						for(j=0; j<symbols; j++){
+							if(!strcmp(wc,sym[j].name)){
+								//Symbol already present
+								//Do nothing, move on
+							}
+						}
+						if(j==symbols){
+							//Add symbol to sym struct
+								strcpy(sym[symbols].name,wc);
+								sym[symbols++].addr = lc;
+						}
+					}
+
+					lc = lc + 4;
+				}
+				break;
+			}
+		}
+		if(i!=MAX_MOT)
+			continue;
+
+		//If not found in POT or MOT, check if the word is a literal by checking if it has a '=' at its start
+		if(wc[0] == '='){
+			//word is a literal
+			strcpy(lit[literals].name,wc);
+			lit[literals++].addr = lc;
+			continue;
+		}
+
+
+		if( !strcmp(wc,"*") ){
+			//Do nothing
+			continue;
+		}
+
+		//If word is not a literal and not found in POT and MOT, it is a symbol
+		//Check if it is added in sym struct. 
+		for(j=0; j<symbols; j++){
+			if(!strcmp(wc,sym[j].name)){
+				//symbol already added in struct
+				//Scan next word, to get DC/DS/EQU
+				fscanf(fip,"%s",wc);
+				goto BEWARE;
+			} 
+		}
+		if(i==symbols){
+			//Word not found in sym struct, hence encountered for the first time
+			//Add the word in sym struct
+			strcpy(sym[symbols].name,wc);
+			sym[symbols++].addr = lc;
+		}
+		
+	}
+
+	//Write data to output files
+	//Literal output not sanitized i.e. =F'5' appears as is instead of 5
+	//Its a start
+	fprintf(fsym,"SYMBOL TABLE\n\n");
+	fprintf(fsym,"NAME\t\t\tLC\n");
+	fprintf(fsym, "------------------------------------------------\n\n");
+	for(i=0; i<symbols; i++)
+		fprintf(fsym, "%s\t\t\t%d\n", sym[i].name,sym[i].addr);
+	fprintf(flit,"LITERAL TABLE\n\n");
+	fprintf(flit,"NAME\t\t\tLC\n");
+	fprintf(flit, "------------------------------------------------\n\n");
+	for(i=0; i<literals; i++)
+		fprintf(flit, "%s\t\t\t%d\n", lit[i].name,lit[i].addr);
+
+	return 0;
+}
