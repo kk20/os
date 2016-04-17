@@ -1,0 +1,16 @@
+import java.util.*;
+class withinline
+{
+	public static void main(String args[])
+	{
+	int a,b;
+	long starttime,endtime,extime;
+	starttime=System.nanoTime();
+	a=5+2+1;
+	b=7+3+1;
+	System.out.println("A="+a+"B="+b);
+	endtime=System.nanoTime();
+	extime= (endtime-starttime);
+	System.out.println("execution time="+extime);
+	}
+}
