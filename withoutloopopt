@@ -1,0 +1,21 @@
+import java.util.*;
+public class withoutloopopt
+{
+	public static void main(String s[])
+	{
+	long start,end;
+	int[] a=new int[2500000];
+	int[] b= new int[2500000];
+	for(int i=0;i<a.length;i++)
+		{
+		a[i]=i;
+		} 
+	start=System.currentTimeMillis();
+	for(int j=0;j<a.length;j++)	
+		{
+		b[j]=a[j];
+		}
+	end=System.currentTimeMillis();
+	System.out.println(end-start + " milli seconds for loop copy ");
+	}
+}
