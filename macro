@@ -1,0 +1,62 @@
+/*Note: This program only fills MNT and MDT. 
+It doesn't contain PASS 2 
+i.e. it doesn't expand the macro call in alp with macro definition
+*/
+
+/* input1.txt
+PQR MACRO &ARG1
+- L 2,&ARG1
+- A 1,&ARG1
+- MEND -
+PG1 START 1000
+- ABC DATA
+DATA DC F,4
+- END -
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include<string.h>
+void main()
+{
+    FILE *f1,*f2,*f3,*f4;
+    char mne[20],opnd[20],la[20];
+    f1=fopen("input1.txt","r");
+    f2=fopen("mnt.txt","w+");
+    f3=fopen("mdt.txt","w+");
+    f4=fopen("output.txt","w+");
+
+    fscanf(f1,"%s%s%s",la,mne,opnd); // READS THE FIRST LINE OF THE PROGRAM input1.txt
+
+    do
+        //while(strcmp(mne,"MEND")!=0) i.e till we don't encounter 'MEND'
+    {
+        if(strcmp(mne,"MACRO")==0)    
+            /*means MACRO is present. The string before keyword 'MACRO' is the name of macro (to be stored in MNT)
+             and following that is MACRO definition (to be stored in MDT)*/
+        {
+            fprintf(f2,"%s\n",la);          //stores macro name in MNT
+            fprintf(f3,"%s\t%s\n",la,opnd); //stores the first line which is start of macro in MDT too
+        }
+        else
+            fprintf(f3,"%s\t%s\n",mne,opnd); //stores rest of the macro definition in MDT
+        fscanf(f1,"%s%s%s",la,mne,opnd); //read next line of input1.txt
+    }while(strcmp(mne,"MEND")!=0);
+    
+    fprintf(f3,"%s",mne);
+    fscanf(f1,"%s%s%s",la,mne,opnd);
+    if(strcmp(mne,"START")==0)       //Now store the alp program in output.txt
+    {
+        do
+        {
+            fprintf(f4,"%s\t%s\t%s\n",la,mne,opnd);
+            fscanf(f1,"%s%s%s",la,mne,opnd);
+        }while(strcmp(mne,"END")!=0);
+        fprintf(f4,"%s\t%s\t%s\n",la,mne,opnd);
+    }
+
+    fclose(f1);
+    fclose(f2);
+    fclose(f3);
+    fclose(f4);
+}
