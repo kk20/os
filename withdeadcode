@@ -1,0 +1,33 @@
+import java.util.*;
+public class withDeadCode
+{
+	public static void main(String s[])
+	{
+		long start,end;
+		start=System.currentTimeMillis();
+		int[] a=new int[2500000];
+		int[] b= new int[2500000];
+		int[] c= new int[2500000];
+		int A = 30;
+		int B = 40;
+		int C = A+B;
+		double D = C+3.14;
+		
+		System.out.println("Addition of "+A+" and "+B+" is: "+C);
+		System.out.println("Adding PI in answer is: "+D);
+		
+		//following is unreachable code
+		for(int i=0;i<a.length;i++)
+		{
+			a[i]=i;
+		} 
+		for(int j=0;j<a.length;j++)	
+		{
+			b[j]=a[j] * 10;
+		}
+		
+		end=System.currentTimeMillis();
+		long time = end - start;
+		System.out.println("Execution time: "+time);
+	}
+}
